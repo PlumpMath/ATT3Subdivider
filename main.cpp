@@ -101,8 +101,9 @@ void drawScene() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	
-	glTranslatef(0.0f, 0.0f, -20.0f);
-	glRotatef(_angle, 0, 1, 0);
+	glTranslatef(0.0f, 0.0f, -10.0f);
+	glRotatef(-45, 1, 0, 0);
+	//glRotatef(30, 0, 1, 0);
 	
 	GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
@@ -154,8 +155,8 @@ void drawScene() {
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess); //The shininess parameter
 	
 	
-
-	for (int i = 0; i < teapot.getPolySize(); i += 1){
+	int poly_size = teapot.getPolySize();
+	for (int i = 0; i < poly_size; i += 1){
 		//cout << "Polygon " << i << ":" << endl;
 		glBegin(GL_POLYGON);
 		for(int j = 0; j < teapot.getVertexSize(i); j+= 1){
@@ -163,7 +164,8 @@ void drawScene() {
 			normal = teapot.getVertex(i, j).n;
 			//cout << point[0] << ", " << point[1] << ", " << point[2] << endl;
 			glNormal3f(normal[0], normal[1], normal[2]);
-			glVertex3f(point[0]*30, point[1]*30, point[2]*30);
+			//glVertex3f(point[0]*30, point[1]*30, point[2]*30);
+			glVertex3f(point[0], point[1], point[2]);
 		}
 		glEnd();
 	}
@@ -188,6 +190,9 @@ int main(int argc, char** argv) {
 	bezReader.ReadBezFile(argv[1]);
 
 	bezReader.BuildPolyVector_Uniform(teapot,0.1);
+	//bezReader.BuildPolyVector_Adaptive(teapot,0.01,0.5);
+
+	//int tmp = 1;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(400, 400);

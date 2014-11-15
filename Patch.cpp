@@ -78,10 +78,10 @@ void Patch::uniformSubdividePatch(float step, PolyVector & polyVector)
 	int numdiv = (1.0f + EPSILON) / step;
 
 	float u,v;
-	for (int iu = 0; iu < numdiv-1; iu++)
+	for (int iu = 0; iu < numdiv; iu++)
 	{
 		u = iu * step;
-		for (int iv = 0; iv < numdiv-1; iv++)
+		for (int iv = 0; iv < numdiv; iv++)
 		{
 			v = iv * step;
 
@@ -115,10 +115,10 @@ void Patch::adaptiveSubdividePatch(float step,float threshold, PolyVector & poly
 	int numdiv = (1.0f + EPSILON) / step;
 
 	float u,v;
-	for (int iu = 0; iu < numdiv-1; iu++)
+	for (int iu = 0; iu < numdiv; iu++)
 	{
 		u = iu * step;
-		for (int iv = 0; iv < numdiv-1; iv++)
+		for (int iv = 0; iv < numdiv; iv++)
 		{
 			v = iv * step;
 
