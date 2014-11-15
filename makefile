@@ -1,7 +1,7 @@
 #RayTracer
 #makefile for g++ linux
 
-CC=g++ -std=c++11
+CC=g++
 CFLAGS=-Wall 
 
 
@@ -18,4 +18,4 @@ OUTPUT_DIR = Release
 
 
 all:
-	$(CC) -O2 -o $(OUTPUT_DIR)/raytracer $(INCLUDE_PATH) $(INCLUDE_FILE) $(SRC_FILES)
+	$(CC) -O2 -o $(OUTPUT_DIR)/readerTest $(INCLUDE_PATH) $(INCLUDE_FILE) $(SRC_FILES)
