@@ -45,16 +45,16 @@ void Patch::bezpatchInterp(float u,float v,Eigen::Vector3f& p, Eigen::Vector3f& 
 	Eigen::Vector3f tmp_d;
 
 	Eigen::Vector3f vcurve[NUM_CP_AXIS];
-	bezcurveInterp_U(0,u,vcurve[0],tmp_d);
-	bezcurveInterp_U(1,u,vcurve[1],tmp_d);
-	bezcurveInterp_U(2,u,vcurve[2],tmp_d);
-	bezcurveInterp_U(3,u,vcurve[3],tmp_d);
+	bezcurveInterp_V(0,u,vcurve[0],tmp_d);
+	bezcurveInterp_V(1,u,vcurve[1],tmp_d);
+	bezcurveInterp_V(2,u,vcurve[2],tmp_d);
+	bezcurveInterp_V(3,u,vcurve[3],tmp_d);
 
 	Eigen::Vector3f ucurve[NUM_CP_AXIS];
-	bezcurveInterp_V(0,v,ucurve[0],tmp_d);
-	bezcurveInterp_V(1,v,ucurve[1],tmp_d);
-	bezcurveInterp_V(2,v,ucurve[2],tmp_d);
-	bezcurveInterp_V(3,v,ucurve[3],tmp_d);
+	bezcurveInterp_U(0,v,ucurve[0],tmp_d);
+	bezcurveInterp_U(1,v,ucurve[1],tmp_d);
+	bezcurveInterp_U(2,v,ucurve[2],tmp_d);
+	bezcurveInterp_U(3,v,ucurve[3],tmp_d);
 
 
 	Eigen::Vector3f dpdv;
@@ -63,7 +63,7 @@ void Patch::bezpatchInterp(float u,float v,Eigen::Vector3f& p, Eigen::Vector3f& 
 	Eigen::Vector3f* tmp_v_p[NUM_CP_AXIS] = {&vcurve[0],&vcurve[1],&vcurve[2],&vcurve[3]};
 	bezcurveInterp(tmp_v_p,v,p,dpdv);
 
-	Eigen::Vector3f* tmp_u_p[NUM_CP_AXIS] = {&vcurve[0],&vcurve[1],&vcurve[2],&vcurve[3]};
+	Eigen::Vector3f* tmp_u_p[NUM_CP_AXIS] = {&ucurve[0],&ucurve[1],&ucurve[2],&ucurve[3]};
 	bezcurveInterp(tmp_u_p,u,p,dpdu);
 
 	n = dpdu.cross(dpdv);

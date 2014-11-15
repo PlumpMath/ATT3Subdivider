@@ -18,16 +18,18 @@ void BezReader::ReadBezFile(const char * filename)
 		line = "";
 		for(int patch_id = 0; patch_id<num_patches; patch_id++)
 		{
-			while(line == "")
-			{
-				getline(in,line);
-			}
 			
-			stringstream ss(line);
-			float x,y,z;
 
 			for (int i = 0;i<NUM_CP_AXIS;i++)
 			{
+				do
+				{
+					getline(in,line);
+				}while(line == "");
+
+				stringstream ss(line);
+				float x,y,z;
+
 				for (int j = 0;j<NUM_CP_AXIS;j++)
 				{
 					ss>>x>>y>>z;

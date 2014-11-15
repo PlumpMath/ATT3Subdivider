@@ -21,6 +21,16 @@ public:
 	void nextPoly();
 	void pushBackVertex(const LocalGeo & local);
 
+
+	int getPolySize()
+	{
+		return vec_poly.size();
+	}
+	int getVertexSize(int i)
+	{
+		return vec_poly.at(i).size();
+	}
+
 	//naive method
 	LocalGeo& getVertex(int i,int j)
 	{
