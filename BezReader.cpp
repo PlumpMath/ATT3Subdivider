@@ -55,16 +55,30 @@ void BezReader::ReadBezFile(const char * filename)
 
 void BezReader::BuildPolyVector_Uniform(PolyVector & polyVector,float step )
 {
+	vector<Patch>::iterator i;
+	for(i = vec_patches.begin(); i != vec_patches.end() ; ++i)
+	{
+		i->uniformSubdividePatch(step,polyVector);
+	}
+	/*
 	for(auto i:vec_patches)
 	{
 		i.uniformSubdividePatch(step,polyVector);
 	}
+	*/
 }
 
 void BezReader::BuildPolyVector_Adaptive(PolyVector & polyVector,float threshold ,float step )
 {
+	vector<Patch>::iterator i;
+	for(i = vec_patches.begin(); i != vec_patches.end() ; ++i)
+	{
+		i->adaptiveSubdividePatch(step,threshold,polyVector);
+	}
+	/*
 	for(auto i:vec_patches)
 	{
 		i.adaptiveSubdividePatch(step,threshold,polyVector);
 	}
+	*/
 }
