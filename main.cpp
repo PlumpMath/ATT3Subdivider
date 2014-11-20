@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <cstring>
 #include "PolyVector.h"
 #include "BezReader.h"
 
@@ -32,7 +33,7 @@
 #else
 #include <sys/time.h>
 #endif
-
+/*
 #ifdef OSX
 #include <GLUT/glut.h>
 #include <OpenGL/glu.h>
@@ -40,26 +41,36 @@
 #include <GL/glut.h>
 #include <GL/glu.h>
 #endif
-//#ifdef __APPLE__
-//#include <OpenGL/OpenGL.h>
-//#include <GLUT/glut.h>
-//#else
-//#include <GL/glut.h>
-//#endif
+*/
+#ifdef __APPLE__
+#include <OpenGL/OpenGL.h>
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#include <GL/glu.h>
+#endif
 
 using namespace std;
+float zoom = 0;
+float x_angle = 0;
+float y_angle = 0;
+float x_trans = 0;
+float y_trans = 0;
+int lastx=0;
+int lasty=0;
 
-const float RADIUS = 4.0f; //The radius of the sphere
+float camera_dist = 10;
 
-float _angle = 0;
 
-bool _highShininess = false; //Whether the shininess parameter is high
-bool _lowSpecularity = false; //Whether the specularity parameter is high
-bool _emission = false; //Whether the emission parameter is turned on
+bool _hiddenLine = false;
+bool _flatShading = false;
+
+unsigned char Buttons[3] = {0};
 
 PolyVector teapot;
 Eigen::Vector3f point;
 Eigen::Vector3f normal;
+Eigen::Vector3f center;
 
 void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
@@ -67,24 +78,82 @@ void handleKeypress(unsigned char key, int x, int y) {
 			exit(0);
 			break;
 		case 's':
-			_highShininess = !_highShininess;
+			_flatShading = !_flatShading;
+			if(_flatShading){
+				glShadeModel(GL_FLAT);
+			} else {
+				glShadeModel(GL_SMOOTH);
+			}
+			glutPostRedisplay();
 			break;
-		case 'p':
-			_lowSpecularity = !_lowSpecularity;
+		case 'w':
+			_hiddenLine = !_hiddenLine;
+			glutPostRedisplay();
 			break;
-		case 'e':
-			_emission = !_emission;
+		case '-':
+		case '_':
+			zoom = zoom - .5;
+			glutPostRedisplay();
+			break;
+		case '=':
+		case '+':
+			zoom = zoom + .5;
+			glutPostRedisplay();
 			break;
 	}
 }
 
+Eigen::Vector3f getCenter(PolyVector& shape)
+{
+	Eigen::Vector3f vertex;
+	Eigen::Vector3f min;
+	Eigen::Vector3f max;
+	int poly_size = shape.getPolySize();
+	for (int i = 0; i < poly_size; i += 1){		
+		for(int j = 0; j < teapot.getVertexSize(i); j+= 1){
+			vertex = teapot.getVertex(i, j).p;
+			if(i == 0 && j == 0){
+				min = vertex;
+				max = vertex;
+			} else {
+				if (vertex[0] < min[0])
+				{
+					min[0] = vertex[0];
+				}
+				if (vertex[1] < min[1])
+				{
+					min[1] = vertex[1];
+				}
+				if (vertex[2] < min[2])
+				{
+					min[2] = vertex[2];
+				}
+				if (vertex[0] > max[0])
+				{
+					max[0] = vertex[0];
+				}
+				if (vertex[1] > max[1])
+				{
+					max[1] = vertex[1];
+				}
+				if (vertex[2] > max[2])
+				{
+					max[2] = vertex[2];
+				}
+			}
+		}
+	}
+	return (min + max)/2;
+}
 void initRendering() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_NORMALIZE);
+	
+	//glShadeModel(GL_FLAT);
+	
 	glShadeModel(GL_SMOOTH);
-	//Disable color materials, so that glMaterial calls work
 	glDisable(GL_COLOR_MATERIAL);
 }
 
@@ -98,49 +167,47 @@ void handleResize(int w, int h) {
 void drawScene() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 	
-	glTranslatef(0.0f, 0.0f, -10.0f);
-	glRotatef(-45, 1, 0, 0);
-	//glRotatef(30, 0, 1, 0);
+	center = getCenter(teapot);
+	
+	gluLookAt(center.x(), center.y(), center.z() + camera_dist,
+			  center.x(), center.y(), center.z(),
+			  0, 		  1, 		  0);
 	
 	GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
 	
-	GLfloat lightColor[] = {0.6f, 0.6f, 0.6f, 1.0f};
-	GLfloat lightPos[] = {1.5f * RADIUS, 2 * RADIUS, 1.5 * RADIUS, 1.0f};
+	GLfloat lightColor[] = {0.7f, 0.7f, 0.7f, 1.0f};
+	GLfloat lightPos[] = {0, 0, 50, 1.0f};
 	//Diffuse (non-shiny) light component
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
 	//Specular (shiny) light component
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+	
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	glLoadIdentity();
+	glTranslatef(0, 0, zoom);
+	glTranslatef(x_trans, y_trans, 0);
+	glRotatef(x_angle, 1, 0, 0);
+	glRotatef(y_angle, 0, 1, 0);
+	//glTranslatef(-center.x(), -center.y(), -center.z());
+	
+
 	
 	//Determine the specularity, emissivity, and shininess parameters, based on
 	//variables that can be toggled with keystrokes
-	float specularity;
-	if (_lowSpecularity) {
-		specularity = 0.3f;
-	}
-	else {
-		specularity = 1;
-	}
 	
-	float emissivity;
-	if (_emission) {
-		emissivity = 0.05f;
-	}
-	else {
-		emissivity = 0;
-	}
+	float specularity = 1;
 	
-	float shininess;
-	if (_highShininess) {
-		shininess = 25;
-	}
-	else {
-		shininess = 12;
-	}
+	float emissivity = 0;
+	
+	float shininess = 12;
+
 	
 	//The color of the sphere
 	GLfloat materialColor[] = {0.2f, 0.2f, 1.0f, 1.0f};
@@ -158,52 +225,188 @@ void drawScene() {
 	int poly_size = teapot.getPolySize();
 	for (int i = 0; i < poly_size; i += 1){
 		//cout << "Polygon " << i << ":" << endl;
-		glBegin(GL_POLYGON);
+		if(_hiddenLine){
+			glBegin(GL_LINE_LOOP);
+		} else {
+			glBegin(GL_POLYGON);
+		}
+		
 		for(int j = 0; j < teapot.getVertexSize(i); j+= 1){
 			point = teapot.getVertex(i, j).p;
 			normal = teapot.getVertex(i, j).n;
-			//cout << point[0] << ", " << point[1] << ", " << point[2] << endl;
+			//glNormal3f(-normal[0], -normal[1], -normal[2]);
 			glNormal3f(normal[0], normal[1], normal[2]);
-			//glVertex3f(point[0]*30, point[1]*30, point[2]*30);
 			glVertex3f(point[0], point[1], point[2]);
 		}
 		glEnd();
 	}
-	
+
+	glPopMatrix();
 	glutSwapBuffers();
 }
 
 //Called every 25 milliseconds
-void update(int value) {
-
-	_angle += 1.5f;
-	if (_angle > 360) {
-		_angle -= 360;
-	}
-	
-	glutPostRedisplay();
-	glutTimerFunc(25, update, 0);
+void myFrameMove() {
+  //nothing here for now
+#ifdef _WIN32
+  Sleep(10);                                   //give ~10ms back to OS (so as not to waste the CPU)
+#endif
+  glutPostRedisplay(); // forces glut to call the display function (myDisplay())
 }
+
+
+void SpecialKeys(int key, int x, int y)
+{
+	int state;
+	state=glutGetModifiers();
+	if (state != GLUT_ACTIVE_SHIFT){
+		if (key == GLUT_KEY_UP)
+		{
+			y_angle = y_angle + 1;
+			if (y_angle > 360) {
+				y_angle -= 360;
+			}
+			glutPostRedisplay();
+		}
+		if (key == GLUT_KEY_DOWN)
+		{
+			y_angle = y_angle - 1;
+			if (y_angle < 0) {
+				y_angle += 360;
+			}
+			glutPostRedisplay();
+		}
+		if (key == GLUT_KEY_LEFT)
+		{
+			x_angle = x_angle + 1;
+			if (x_angle > 360) {
+				x_angle -= 360;
+			}
+			glutPostRedisplay();
+		}
+		if (key == GLUT_KEY_RIGHT)
+		{
+			x_angle = x_angle - 1;
+			if (x_angle < 0) {
+				x_angle += 360;
+			}
+			glutPostRedisplay();
+		}
+	} else {
+		if (key == GLUT_KEY_UP)
+		{
+			y_trans = y_trans + 1;
+			glutPostRedisplay();
+		}
+		if (key == GLUT_KEY_DOWN)
+		{
+			y_trans = y_trans - 1;
+			glutPostRedisplay();
+		}
+		if (key == GLUT_KEY_LEFT)
+		{
+			x_trans = x_trans - 1;
+			glutPostRedisplay();
+		}
+		if (key == GLUT_KEY_RIGHT)
+		{
+			x_trans = x_trans + 1;
+			glutPostRedisplay();
+		}
+	}
+}
+
+void Motion(int x,int y)
+{
+	int diffx=x-lastx;
+	int diffy=y-lasty;
+	lastx=x;
+	lasty=y;
+
+	if( Buttons[0] && Buttons[1] )
+	{
+		zoom -= (float) 0.05f * diffx;
+	}
+	else
+		if( Buttons[0] )
+		{
+			x_angle += (float) 0.5f * diffy;
+			y_angle += (float) 0.5f * diffx;		
+		}
+		else
+			if( Buttons[1] )
+			{
+				x_trans += (float) 0.05f * diffx;
+				y_trans -= (float) 0.05f * diffy;
+			}
+			glutPostRedisplay();
+}
+
+void Mouse(int b,int s,int x,int y)
+{
+	lastx=x;
+	lasty=y;
+	switch(b)
+	{
+	case GLUT_LEFT_BUTTON:
+		Buttons[0] = ((GLUT_DOWN==s)?1:0);
+		break;
+	case GLUT_MIDDLE_BUTTON:
+		Buttons[1] = ((GLUT_DOWN==s)?1:0);
+		break;
+	case GLUT_RIGHT_BUTTON:
+		Buttons[2] = ((GLUT_DOWN==s)?1:0);
+		break;
+	default:
+		break;		
+	}
+	glutPostRedisplay();
+}
+
+
 
 int main(int argc, char** argv) {
 	BezReader bezReader;
 	bezReader.ReadBezFile(argv[1]);
 
-	bezReader.BuildPolyVector_Uniform(teapot,0.1);
-	//bezReader.BuildPolyVector_Adaptive(teapot,0.01,0.5);
+	if(argc > 3)
+	{
+		float error = 0.01;
+		if(argc>4)
+		{
+			error = atof(argv[4]);
+		}
 
-	//int tmp = 1;
+		if(strcmp(argv[3], "-a") == 0)
+		{
+			bezReader.BuildPolyVector_Adaptive(teapot,0.01,atof(argv[2]));
+		} 
+	}
+	else 
+	{
+		bezReader.BuildPolyVector_Uniform(teapot,atof(argv[2]));
+	}
+
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize(400, 400);
+	glutInitWindowSize(600, 600);
 	
 	glutCreateWindow("ASS3");
 	initRendering();
 	
 	glutDisplayFunc(drawScene);
+	glutSpecialFunc(SpecialKeys);
 	glutKeyboardFunc(handleKeypress);
 	glutReshapeFunc(handleResize);
-	
+
+	glutMouseFunc(Mouse);
+	glutMotionFunc(Motion);
+
+	glutIdleFunc(myFrameMove);
+
+
+
 	glutMainLoop();
 	return 0;
 }
