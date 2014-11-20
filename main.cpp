@@ -155,6 +155,21 @@ void initRendering() {
 	
 	glShadeModel(GL_SMOOTH);
 	glDisable(GL_COLOR_MATERIAL);
+
+
+
+	GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
+	
+	GLfloat lightColord[] = {0.7f, 0.7f, 0.7f, 1.0f};
+	GLfloat lightColors[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	GLfloat lightPos[] = {1000, 1000, 1000, 1.0f};
+	//Diffuse (non-shiny) light component
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColord);
+	//Specular (shiny) light component
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightColors);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+	
 }
 
 void handleResize(int w, int h) {
@@ -168,22 +183,19 @@ void drawScene() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	
-	center = getCenter(teapot);
+	//center = getCenter(teapot);
 	
-	gluLookAt(center.x(), center.y(), center.z() + camera_dist,
-			  center.x(), center.y(), center.z(),
-			  0, 		  1, 		  0);
+	gluLookAt(0,0,-10,center.x(),center.y(),center.z(),0,1,0);
+
+	//gluLookAt(center.x(), center.y(), center.z() + camera_dist,center.x(), center.y(), center.z(),0, 		  1, 		  0);
+	//cout<<center<<endl;
 	
-	GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
 	
-	GLfloat lightColor[] = {0.7f, 0.7f, 0.7f, 1.0f};
-	GLfloat lightPos[] = {0, 0, 50, 1.0f};
-	//Diffuse (non-shiny) light component
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
-	//Specular (shiny) light component
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor);
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+	//light used to be here
+
+
+
+
 
 	
 
@@ -195,6 +207,7 @@ void drawScene() {
 	glTranslatef(x_trans, y_trans, 0);
 	glRotatef(x_angle, 1, 0, 0);
 	glRotatef(y_angle, 0, 1, 0);
+	
 	//glTranslatef(-center.x(), -center.y(), -center.z());
 	
 
@@ -248,10 +261,10 @@ void drawScene() {
 //Called every 25 milliseconds
 void myFrameMove() {
   //nothing here for now
-#ifdef _WIN32
-  Sleep(10);                                   //give ~10ms back to OS (so as not to waste the CPU)
-#endif
-  glutPostRedisplay(); // forces glut to call the display function (myDisplay())
+//#ifdef _WIN32
+//  Sleep(10);                                   //give ~10ms back to OS (so as not to waste the CPU)
+//#endif
+//  glutPostRedisplay(); // forces glut to call the display function (myDisplay())
 }
 
 
@@ -328,6 +341,7 @@ void Motion(int x,int y)
 		zoom -= (float) 0.05f * diffx;
 	}
 	else
+	{
 		if( Buttons[0] )
 		{
 			x_angle += (float) 0.5f * diffy;
@@ -339,7 +353,8 @@ void Motion(int x,int y)
 				x_trans += (float) 0.05f * diffx;
 				y_trans -= (float) 0.05f * diffy;
 			}
-			glutPostRedisplay();
+	}
+	glutPostRedisplay();
 }
 
 void Mouse(int b,int s,int x,int y)
@@ -387,6 +402,9 @@ int main(int argc, char** argv) {
 		bezReader.BuildPolyVector_Uniform(teapot,atof(argv[2]));
 	}
 
+
+	center = getCenter(teapot);
+	
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
