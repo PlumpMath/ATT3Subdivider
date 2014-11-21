@@ -6,7 +6,7 @@
 *.txt
 *.obj
 *.mtl
-.bez
+*.bez
 
 ReadMe.txt
 Debug/
