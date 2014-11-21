@@ -22,7 +22,7 @@ void Patch::bezcurveInterp_V(int id, float u, Eigen::Vector3f& p, Eigen::Vector3
 
 
 
-void Patch::bezcurveInterp(Eigen::Vector3f* curve[],float u,Eigen::Vector3f& p,Eigen::Vector3f& dpdu)
+void Patch::bezcurveInterp(Eigen::Vector3f* curve[],float u,Eigen::Vector3f& p,Eigen::Vector3f& dpdu /*, float & d2pdu2*/)
 {
 	//interp
 	Eigen::Vector3f A(  (*curve[0])*(1.0f-u) + (*curve[1])*u );
@@ -36,6 +36,11 @@ void Patch::bezcurveInterp(Eigen::Vector3f* curve[],float u,Eigen::Vector3f& p,E
 	p = D*(1.0f - u) + E*u;
 
 	dpdu = 3 * (E-D);
+
+
+
+	//2nd derivative
+	//d2pdu2 =(   9*( (u-1)*(*curve[0]) + (2-3*u)*(*curve[1]) + (3*u-1)*(*curve[2]) - u*(*curve[3])  )  ).norm();
 
 }
 

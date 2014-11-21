@@ -51,15 +51,18 @@
 #endif
 
 using namespace std;
-float zoom = 0;
+float zoom = 1;
 float x_angle = 0;
 float y_angle = 0;
 float x_trans = 0;
 float y_trans = 0;
 int lastx=0;
 int lasty=0;
+int window_w = 600;
+int window_h = 600;
 
 float camera_dist = 10;
+Eigen::Vector3f pos_camera(0,0,-10);
 
 
 bool _hiddenLine = false;
@@ -68,8 +71,8 @@ bool _flatShading = false;
 unsigned char Buttons[3] = {0};
 
 PolyVector teapot;
-Eigen::Vector3f point;
-Eigen::Vector3f normal;
+//Eigen::Vector3f point;
+//Eigen::Vector3f normal;
 Eigen::Vector3f center;
 
 void handleKeypress(unsigned char key, int x, int y) {
@@ -92,14 +95,24 @@ void handleKeypress(unsigned char key, int x, int y) {
 			break;
 		case '-':
 		case '_':
-			zoom = zoom - .5;
-			glutPostRedisplay();
-			break;
+			{
+				zoom = zoom - .1;
+				//Eigen::Vector3f vector_zoom((center - pos_camera)*zoom);
+				//pos_camera += vector_zoom;
+				//cout<<pos_camera<<endl;
+				
+				break;
+			}
 		case '=':
 		case '+':
-			zoom = zoom + .5;
-			glutPostRedisplay();
-			break;
+			{
+				zoom = zoom + .1;
+				//Eigen::Vector3f vector_zoom((center - pos_camera)*zoom);
+				//pos_camera += vector_zoom;
+				//cout<<pos_camera<<endl;
+				
+				break;
+			}
 	}
 }
 
@@ -173,6 +186,8 @@ void initRendering() {
 }
 
 void handleResize(int w, int h) {
+	window_h = h;
+	window_w = w;
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -184,30 +199,33 @@ void drawScene() {
 	
 	
 	//center = getCenter(teapot);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0 * zoom, (float)window_w / (float)window_h, 1.0, 200.0);
+	glutPostRedisplay();
 	
-	gluLookAt(0,0,-10,center.x(),center.y(),center.z(),0,1,0);
 
-	//gluLookAt(center.x(), center.y(), center.z() + camera_dist,center.x(), center.y(), center.z(),0, 		  1, 		  0);
-	//cout<<center<<endl;
-	
+	gluLookAt(pos_camera.x(),pos_camera.y(),pos_camera.z()
+		,center.x(),center.y(),center.z(),0,-1,0);
+
 	
 	//light used to be here
 
 
-
-
-
 	
 
+	
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
+	
 
 	glLoadIdentity();
-	glTranslatef(0, 0, zoom);
+	
+	//glTranslatef(0, 0, zoom);
 	glTranslatef(x_trans, y_trans, 0);
 	glRotatef(x_angle, 1, 0, 0);
 	glRotatef(y_angle, 0, 1, 0);
-	
+	glTranslatef(-center.x(),-center.y(),-center.z());
 	//glTranslatef(-center.x(), -center.y(), -center.z());
 	
 
@@ -234,6 +252,10 @@ void drawScene() {
 	glMaterialfv(GL_FRONT, GL_EMISSION, materialEmission);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess); //The shininess parameter
 	
+
+
+	Eigen::Vector3f point;
+	Eigen::Vector3f normal;
 	
 	int poly_size = teapot.getPolySize();
 	for (int i = 0; i < poly_size; i += 1){
@@ -273,7 +295,7 @@ void SpecialKeys(int key, int x, int y)
 	int state;
 	state=glutGetModifiers();
 	if (state != GLUT_ACTIVE_SHIFT){
-		if (key == GLUT_KEY_UP)
+		if (key == GLUT_KEY_LEFT)
 		{
 			y_angle = y_angle + 1;
 			if (y_angle > 360) {
@@ -281,7 +303,7 @@ void SpecialKeys(int key, int x, int y)
 			}
 			glutPostRedisplay();
 		}
-		if (key == GLUT_KEY_DOWN)
+		if (key == GLUT_KEY_RIGHT)
 		{
 			y_angle = y_angle - 1;
 			if (y_angle < 0) {
@@ -289,7 +311,7 @@ void SpecialKeys(int key, int x, int y)
 			}
 			glutPostRedisplay();
 		}
-		if (key == GLUT_KEY_LEFT)
+		if (key == GLUT_KEY_UP)
 		{
 			x_angle = x_angle + 1;
 			if (x_angle > 360) {
@@ -297,7 +319,7 @@ void SpecialKeys(int key, int x, int y)
 			}
 			glutPostRedisplay();
 		}
-		if (key == GLUT_KEY_RIGHT)
+		if (key == GLUT_KEY_DOWN)
 		{
 			x_angle = x_angle - 1;
 			if (x_angle < 0) {
@@ -306,24 +328,25 @@ void SpecialKeys(int key, int x, int y)
 			glutPostRedisplay();
 		}
 	} else {
+		const float trans_step = 0.1f;
 		if (key == GLUT_KEY_UP)
 		{
-			y_trans = y_trans + 1;
+			y_trans -= trans_step;
 			glutPostRedisplay();
 		}
 		if (key == GLUT_KEY_DOWN)
 		{
-			y_trans = y_trans - 1;
+			y_trans += trans_step;
 			glutPostRedisplay();
 		}
 		if (key == GLUT_KEY_LEFT)
 		{
-			x_trans = x_trans - 1;
+			x_trans -= trans_step;
 			glutPostRedisplay();
 		}
 		if (key == GLUT_KEY_RIGHT)
 		{
-			x_trans = x_trans + 1;
+			x_trans += trans_step;
 			glutPostRedisplay();
 		}
 	}
@@ -408,7 +431,7 @@ int main(int argc, char** argv) {
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize(600, 600);
+	glutInitWindowSize(window_w, window_h);
 	
 	glutCreateWindow("ASS3");
 	initRendering();
