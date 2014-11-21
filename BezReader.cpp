@@ -5,6 +5,8 @@
 
 void BezReader::ReadBezFile(const char * filename)
 {
+
+
 	ifstream in;
 	in.open(filename);
 
@@ -25,7 +27,7 @@ void BezReader::ReadBezFile(const char * filename)
 				do
 				{
 					getline(in,line);
-				}while(line == "");
+				}while(line == "" || line.at(0) == ' ');
 
 				stringstream ss(line);
 				float x,y,z;

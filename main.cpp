@@ -28,6 +28,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include "ObjConverter.h"
 #include "PolyVector.h"
 #include "BezReader.h"
 
@@ -236,11 +237,15 @@ void drawScene() {
 	glutPostRedisplay();
 	
 
-	//gluLookAt(pos_camera.x(),pos_camera.y(),pos_camera.z()
-	//	,center.x(),center.y(),center.z(),0,-1,0);
 	gluLookAt(pos_camera.x(),pos_camera.y(),pos_camera.z()
-		,0,0,0,0,-1,0);
+		,center.x(),center.y(),center.z(),0,-1,0);
+	//gluLookAt(pos_camera.x(),pos_camera.y(),pos_camera.z()
+	//	,0,0,0,0,-1,0);
 	
+
+	//gluLookAt(center.x(), center.y(), center.z() + camera_dist,center.x(), center.y(), center.z(),0, 		  -1, 		  0);
+
+
 	//light used to be here
 
 
@@ -498,6 +503,8 @@ void Mouse(int b,int s,int x,int y)
 
 
 int main(int argc, char** argv) {
+	ObjConverter objconverter;		//ugly implementation, should be a singleton
+
 
 	if(strcmp(argv[1],"-m") == 0)
 	{
@@ -542,6 +549,9 @@ int main(int argc, char** argv) {
 				break;
 			}
 
+			line = objconverter.bezFileName(line);
+
+
 			vec_polyVector.push_back(PolyVector());
 			vec_objTransformInfo.push_back(ObjTransformInfo());
 			last_id++;
@@ -585,8 +595,11 @@ int main(int argc, char** argv) {
 		vec_objTransformInfo.push_back(ObjTransformInfo());
 
 
+		string inputfilename(argv[1]);
+		inputfilename = objconverter.bezFileName(inputfilename);
+
 		BezReader bezReader;
-		bezReader.ReadBezFile(argv[1]);
+		bezReader.ReadBezFile(inputfilename.c_str());
 
 		if(argc > 3)
 		{
